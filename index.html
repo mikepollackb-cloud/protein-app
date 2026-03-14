@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protein/$</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f7ff;
+  --s1:#ffffff;
+  --s2:#e8f4fd;
+  --s3:#d4ebf7;
+  --border:#b8d9f0;
+  --border2:#8ec4e8;
+  --teal:#0d9e7e;
+  --teal-dim:rgba(13,158,126,.1);
+  --teal-glow:rgba(13,158,126,.25);
+  --blue:#1a6fb5;
+  --blue-dim:rgba(26,111,181,.1);
+  --text:#1a2e3b;
+  --muted:#5a7a8a;
+  --muted2:#94aebb;
+  --gold:#f5a623;
+  --silver:#9ab0be;
+  --bronze:#c47d3a;
+  --green:#0d9e7e;
+  --red:#e05555;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 80px}
+
+/* ── header ── */
+.hdr{max-width:700px;margin:0 auto;padding:40px 20px 28px;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:5px;background:var(--teal-dim);border:1px solid rgba(13,158,126,.25);border-radius:100px;padding:5px 14px;font-size:11px;color:var(--teal);letter-spacing:.07em;text-transform:uppercase;margin-bottom:20px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(36px,8vw,62px);font-weight:800;line-height:1;letter-spacing:-.02em;margin-bottom:12px;color:var(--text)}
+h1 em{font-style:normal;color:var(--teal)}
+h1 span{color:var(--blue)}
+.sub{color:var(--muted);font-size:15px;line-height:1.6;max-width:400px;margin:0 auto}
+
+/* ── mode toggle ── */
+.mode-wrap{max-width:700px;margin:0 auto 20px;padding:0 20px}
+.mode-toggle{display:grid;grid-template-columns:1fr 1fr;background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:5px;gap:5px;box-shadow:0 2px 8px rgba(26,111,181,.06)}
+.mode-btn{padding:13px 8px;border:none;border-radius:12px;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.mode-btn svg{width:16px;height:16px;flex-shrink:0}
+.mode-btn.active{background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff;box-shadow:0 4px 12px rgba(13,158,126,.3)}
+.mode-btn:hover:not(.active){color:var(--text);background:var(--s2)}
+
+/* ── card ── */
+.card{max-width:700px;margin:0 auto 16px;padding:0 20px}
+.inner{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 2px 12px rgba(26,111,181,.07)}
+
+/* ── location row ── */
+.loc-row{display:flex;align-items:center;gap:12px;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.loc-icon{width:32px;height:32px;border-radius:10px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.loc-icon svg{width:15px;height:15px}
+.loc-body{flex:1;min-width:0}
+.loc-lbl{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.loc-val{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.loc-dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);flex-shrink:0}
+.loc-dot.on{background:var(--teal)}
+.loc-dot.err{background:var(--red)}
+
+/* ── search ── */
+.search-wrap{position:relative;margin-bottom:16px}
+.search-input{width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px 13px 42px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--teal);background:var(--s1)}
+.search-input::placeholder{color:var(--muted2)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);pointer-events:none}
+.suggestions{background:var(--s1);border:1.5px solid var(--border2);border-radius:12px;margin-top:4px;overflow:hidden;display:none;box-shadow:0 8px 24px rgba(26,111,181,.12)}
+.suggestions.show{display:block}
+.sug-item{padding:11px 16px;font-size:13px;cursor:pointer;color:var(--text);transition:background .15s;border-bottom:1px solid var(--border)}
+.sug-item:last-child{border-bottom:none}
+.sug-item:hover{background:var(--s2)}
+.sug-name{font-weight:600}
+.sug-addr{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── detected strip ── */
+.detected-strip{display:flex;align-items:center;gap:12px;background:var(--teal-dim);border:1.5px solid rgba(13,158,126,.25);border-radius:12px;padding:12px 16px;margin-bottom:16px;cursor:pointer;transition:all .2s}
+.detected-strip:hover{border-color:var(--teal);background:rgba(13,158,126,.15)}
+.det-icon{font-size:20px}
+.det-body{flex:1}
+.det-name{font-size:15px;font-weight:600;color:var(--teal)}
+.det-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.det-change{font-size:12px;color:var(--blue);text-decoration:underline;flex-shrink:0;font-weight:500}
+
+/* ── button ── */
+.btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(13,158,126,.3)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(13,158,126,.4)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn svg{width:17px;height:17px}
+
+/* ── action row ── */
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.pref-btn{padding:11px 8px;background:var(--s2);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.pref-btn:hover{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+.pref-btn.has-prefs{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+.lucky-btn{padding:11px 8px;background:linear-gradient(135deg,#f5a623,#e09000);border:none;border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(245,166,35,.35)}
+.lucky-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(245,166,35,.5)}
+.lucky-btn:active{transform:translateY(0)}
+.lucky-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── modal overlay ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,20,35,.75);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--s1);border-radius:24px;padding:28px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);border:1px solid var(--border);position:relative}
+.modal-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px;text-align:center}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;text-align:center}
+.food-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.food-cat{border:1.5px solid var(--border);border-radius:14px;padding:14px 8px;cursor:pointer;transition:all .2s;text-align:center;background:var(--s2);user-select:none}
+.food-cat:hover{border-color:var(--teal);background:var(--teal-dim)}
+.food-cat.selected{border-color:var(--teal);background:var(--teal-dim);box-shadow:0 0 0 2px rgba(13,158,126,.2)}
+.food-cat.maxed:not(.selected){opacity:.45;cursor:not-allowed}
+.food-cat-emoji{font-size:28px;display:block;margin-bottom:6px}
+.food-cat-label{font-size:12px;font-weight:600;color:var(--text)}
+.food-cat.selected .food-cat-label{color:var(--teal)}
+.modal-actions{display:flex;gap:10px}
+.modal-btn-primary{flex:1;padding:12px;background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.modal-btn-primary:hover{opacity:.9}
+.modal-btn-secondary{padding:12px 20px;background:var(--s2);border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.modal-btn-secondary:hover{border-color:var(--red);color:var(--red)}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border:none;background:var(--s2);border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s}
+.modal-close:hover{background:var(--s3);color:var(--text)}
+.pref-count{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--teal);color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin-left:2px}
+
+/* ── wheel ── */
+.wheel-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin:12px 0 0}
+.wheel-pointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:26px;z-index:2;line-height:1}
+#wheel-canvas{border-radius:50%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:block;margin:0 auto}
+.spin-btn{width:100%;padding:14px;background:linear-gradient(135deg,#f5a623,#e09000);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(245,166,35,.4);margin-top:16px}
+.spin-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,166,35,.5)}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.wheel-winner{background:linear-gradient(135deg,rgba(245,166,35,.12),rgba(245,166,35,.04));border:2px solid rgba(245,166,35,.4);border-radius:16px;padding:20px;text-align:center;margin-top:16px}
+.winner-trophy{font-size:42px;margin-bottom:8px}
+.winner-item-name{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--text);margin-bottom:4px}
+.winner-rest-name{font-size:13px;color:var(--muted);margin-bottom:14px}
+.winner-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.winner-stat{background:var(--s2);border-radius:10px;padding:8px 14px;text-align:center}
+.winner-stat-val{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--teal)}
+.winner-stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* ── results ── */
+.results{max-width:700px;margin:0 auto;padding:0 20px}
+.sec-lbl{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;padding-left:2px;font-weight:600}
+
+/* ── winner cards ── */
+.winners-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.winner-card{border-radius:18px;padding:20px;position:relative;overflow:hidden}
+.winner-card.best-protein{background:linear-gradient(135deg,rgba(13,158,126,.12),rgba(26,111,181,.08));border:1.5px solid rgba(13,158,126,.3)}
+.winner-card.best-health{background:linear-gradient(135deg,rgba(26,111,181,.12),rgba(13,158,126,.08));border:1.5px solid rgba(26,111,181,.3)}
+.wc-crown{font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
+.best-protein .wc-crown{color:var(--teal)}
+.best-health .wc-crown{color:var(--blue)}
+.wc-emoji{font-size:20px;margin-bottom:8px}
+.wc-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:4px}
+.wc-rest{font-size:12px;color:var(--muted);margin-bottom:14px}
+.wc-stats{display:flex;flex-direction:column;gap:6px}
+.wc-stat{display:flex;justify-content:space-between;align-items:center}
+.wc-stat-lbl{font-size:11px;color:var(--muted)}
+.wc-stat-val{font-size:14px;font-weight:700;color:var(--text)}
+.best-protein .wc-stat-val.main{color:var(--teal);font-size:18px}
+.best-health .wc-stat-val.main{color:var(--blue);font-size:18px}
+
+/* ── podium ── */
+.podium-wrap{margin-bottom:24px}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;height:260px;padding:0 8px}
+.pod{display:flex;flex-direction:column;align-items:center;flex:1;max-width:200px;opacity:0;transform:translateY(40px)}
+.pod.show{animation:podRise .5s ease forwards}
+@keyframes podRise{to{opacity:1;transform:translateY(0)}}
+.pod-info{text-align:center;margin-bottom:10px;padding:0 4px}
+.pod-item-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:3px}
+.pod-rest-name{font-size:11px;color:var(--muted)}
+.pod-ratio{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;line-height:1}
+.pod-unit{font-size:10px;color:var(--muted);margin-top:2px}
+.pod-block{width:100%;border-radius:12px 12px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:12px 8px;position:relative}
+.pod-medal{font-size:28px;margin-bottom:6px}
+.pod-price{font-size:12px;font-weight:600;opacity:.9}
+.pod-protein{font-size:11px;opacity:.75;margin-top:2px}
+.pod-1 .pod-block{height:160px;background:linear-gradient(180deg,#f9d851,#f5a623);box-shadow:0 8px 24px rgba(245,166,35,.4)}
+.pod-2 .pod-block{height:120px;background:linear-gradient(180deg,#c8d8e0,#9ab0be);box-shadow:0 6px 16px rgba(154,176,190,.4)}
+.pod-3 .pod-block{height:90px;background:linear-gradient(180deg,#dba86a,#c47d3a);box-shadow:0 4px 12px rgba(196,125,58,.35)}
+.pod-1 .pod-ratio{color:var(--gold)}
+.pod-2 .pod-ratio{color:var(--silver)}
+.pod-3 .pod-ratio{color:var(--bronze)}
+.pod-1 .pod-block .pod-price,.pod-1 .pod-block .pod-protein{color:#7a4800}
+.pod-2 .pod-block .pod-price,.pod-2 .pod-block .pod-protein{color:#2d4a55}
+.pod-3 .pod-block .pod-price,.pod-3 .pod-block .pod-protein{color:#5c2e00}
+
+/* ── full list ── */
+.list-item{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:10px;display:grid;grid-template-columns:36px 1fr auto;gap:14px;align-items:center;transition:all .2s;box-shadow:0 2px 6px rgba(26,111,181,.04)}
+.list-item:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(26,111,181,.1);transform:translateY(-1px)}
+.li-rank{font-size:14px;font-weight:700;color:var(--muted2);text-align:center;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--s2)}
+.li-rank.top{background:var(--teal-dim);color:var(--teal)}
+.li-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.li-rest{font-size:12px;color:var(--muted)}
+.li-note{font-size:11px;color:var(--muted2);margin-top:4px;font-style:italic}
+.li-stats{text-align:right}
+.li-ratio{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--teal);line-height:1}
+.li-unit{font-size:11px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400}
+.li-detail{font-size:12px;color:var(--muted);margin-top:4px}
+.li-macros{display:flex;gap:8px;margin-top:6px}
+.macro-pill{font-size:10px;padding:2px 8px;border-radius:100px;font-weight:600}
+.macro-p{background:rgba(13,158,126,.12);color:var(--teal)}
+.macro-c{background:rgba(26,111,181,.1);color:var(--blue)}
+.macro-f{background:rgba(245,166,35,.12);color:#c47d3a}
+.bar-row{grid-column:1/-1;height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-top:6px}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:2px;transition:width .6s ease}
+
+/* ── toggle ── */
+.toggle-link{text-align:center;margin-top:14px margin-bottom:8px}
+.toggle-link button{background:var(--s1);border:1.5px solid var(--border);color:var(--blue);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;padding:8px 20px;border-radius:100px;transition:all .2s}
+.toggle-link button:hover{background:var(--blue-dim);border-color:var(--blue)}
+
+/* ── loading ── */
+.loading{text-align:center;padding:56px 0}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-lbl{color:var(--muted);font-size:14px;margin-bottom:8px;font-weight:500}
+.load-step{color:var(--teal);font-size:13px;min-height:20px}
+
+/* ── error / empty ── */
+.err-box{background:rgba(224,85,85,.07);border:1.5px solid rgba(224,85,85,.2);border-radius:14px;padding:20px;color:var(--red);font-size:14px;text-align:center}
+.empty{text-align:center;padding:56px 0;color:var(--muted);font-size:15px}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+
+.disclaimer{text-align:center;color:var(--muted2);font-size:11px;margin-top:28px;line-height:1.7;max-width:480px;margin-left:auto;margin-right:auto;padding:0 20px}
+.local-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:100px;background:var(--blue-dim);color:var(--blue);font-weight:600;margin-left:5px;vertical-align:middle}
+.health-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:100px;background:rgba(13,158,126,.12);color:var(--teal);font-weight:600;margin-left:5px;vertical-align:middle}
+
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999;display:none}
+</style>
+</head>
+<body>
+
+<!-- Confetti canvas -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- Preferences Modal -->
+<div class="modal-overlay" id="pref-modal" onclick="prefOverlayClick(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closePrefs()">✕</button>
+    <div class="modal-title">🎛️ Set Food Preferences</div>
+    <div class="modal-sub">Pick up to 3 cuisines you're craving 👇</div>
+    <div class="food-grid" id="food-grid"></div>
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="clearPrefs()">Clear all</button>
+      <button class="modal-btn-primary" onclick="applyPrefs()">Apply ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Wheel Modal -->
+<div class="modal-overlay" id="wheel-modal" onclick="wheelOverlayClick(event)">
+  <div class="modal-box" style="text-align:center">
+    <button class="modal-close" onclick="closeWheelModal()">✕</button>
+    <div class="modal-title">🎰 I'm Feeling Lucky!</div>
+    <div class="modal-sub">10 high-protein picks — spin to decide! 🎲</div>
+
+    <div id="wheel-loading" style="padding:32px 0">
+      <div class="spinner"></div>
+      <div class="load-lbl">Finding your lucky picks…</div>
+    </div>
+
+    <div id="wheel-content" style="display:none">
+      <div class="wheel-wrap">
+        <div class="wheel-pointer">▼</div>
+        <canvas id="wheel-canvas"></canvas>
+      </div>
+      <button class="spin-btn" id="spin-btn" onclick="startSpin()">🎰 Spin the Wheel!</button>
+
+      <div id="wheel-winner-wrap" style="display:none;margin-top:16px">
+        <div class="wheel-winner">
+          <div class="winner-trophy">🏆</div>
+          <div class="winner-item-name" id="winner-item"></div>
+          <div class="winner-rest-name" id="winner-rest"></div>
+          <div class="winner-stats">
+            <div class="winner-stat"><div class="winner-stat-val" id="winner-ppd"></div><div class="winner-stat-lbl">Protein/$</div></div>
+            <div class="winner-stat"><div class="winner-stat-val" id="winner-protein"></div><div class="winner-stat-lbl">Protein</div></div>
+            <div class="winner-stat"><div class="winner-stat-val" id="winner-price"></div><div class="winner-stat-lbl">Price</div></div>
+          </div>
+          <div style="margin-top:10px;font-size:13px;color:var(--muted)" id="winner-note"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hdr">
+  <div class="badge">
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M5 2.5v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    Powered by Claude AI
+  </div>
+  <h1>Protein<em>/$</em></h1>
+  <p class="sub">Find the best protein value near you — or right where you're sitting. 💪</p>
+</div>
+
+<div class="mode-wrap">
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btn-mode-nearby" onclick="setMode('nearby')">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" fill="currentColor"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Best near me
+    </button>
+    <button class="mode-btn" id="btn-mode-here" onclick="setMode('here')">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6C3.5 9.5 8 14.5 8 14.5C8 14.5 12.5 9.5 12.5 6C12.5 3.5 10.5 1.5 8 1.5Z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      I'm already here
+    </button>
+  </div>
+</div>
+
+<div class="card" id="panel-nearby">
+  <div class="inner">
+    <div class="loc-row">
+      <div class="loc-icon">
+        <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#0d9e7e" stroke-width="1.3"/><circle cx="7" cy="7" r="2" stroke="#0d9e7e" stroke-width="1.3"/></svg>
+      </div>
+      <div class="loc-body">
+        <div class="loc-lbl">Your location</div>
+        <div class="loc-val" id="nearby-loc-val">Click below to detect</div>
+      </div>
+      <div class="loc-dot" id="nearby-loc-dot"></div>
+    </div>
+    <button class="btn" id="nearby-btn" onclick="runNearby()">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M13 5.5L8 2L3 5.5V11.5L8 14L13 11.5V5.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>
+      Find Best Protein Value Near Me
+    </button>
+    <div class="action-row">
+      <button class="pref-btn" id="pref-btn" onclick="openPrefs()">🎛️ Set Preferences</button>
+      <button class="lucky-btn" id="lucky-btn" onclick="feelingLucky()">🎰 I'm Feeling Lucky</button>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="panel-here" style="display:none">
+  <div class="inner">
+    <div class="loc-row">
+      <div class="loc-icon">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M7 1C4.8 1 3 2.8 3 5C3 8 7 13 7 13C7 13 11 8 11 5C11 2.8 9.2 1 7 1Z" stroke="#0d9e7e" stroke-width="1.3"/><circle cx="7" cy="5" r="1.3" stroke="#0d9e7e" stroke-width="1.3"/></svg>
+      </div>
+      <div class="loc-body">
+        <div class="loc-lbl">GPS location</div>
+        <div class="loc-val" id="here-loc-val">Detecting…</div>
+      </div>
+      <div class="loc-dot" id="here-loc-dot"></div>
+    </div>
+
+    <div id="detected-wrap" style="display:none">
+      <div class="detected-strip" onclick="showSearchOverride()">
+        <div class="det-icon">🍽️</div>
+        <div class="det-body">
+          <div class="det-name" id="det-name">—</div>
+          <div class="det-sub" id="det-sub">Detected from your GPS</div>
+        </div>
+        <div class="det-change">change ✏️</div>
+      </div>
+    </div>
+
+    <div id="search-override" style="display:none;margin-bottom:16px">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <input class="search-input" id="rest-search" type="text" placeholder="Start typing a restaurant name…" oninput="handleSearch(this.value)" autocomplete="off">
+      </div>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div id="here-status" style="text-align:center;color:var(--muted);font-size:13px;padding:8px 0 16px">Detecting your location…</div>
+
+    <button class="btn" id="here-btn" onclick="runHere()" disabled>
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Analyze This Restaurant's Menu
+    </button>
+  </div>
+</div>
+
+<div class="results" id="results">
+  <div class="empty"><div class="empty-icon">🥩</div><div>Your rankings will appear here</div></div>
+</div>
+
+<p class="disclaimer">Protein and price data is AI-estimated from publicly available menu info. Prices vary by location. Always verify at the counter.</p>
+
+<script>
+let mode = 'nearby';
+let userLat = null, userLon = null;
+let detectedRestaurant = null;
+let selectedRestaurant = null;
+let googleApiKey = 'AIzaSyCYRe3Bp6SgBCAKF3zNyzLsaomIAvf_vGU';
+let showFullList = false;
+let lastResults = [];
+let lastRestName = '';
+
+// Preferences
+let userPreferences = [];
+const FOOD_CATS = [
+  { id: 'american',      emoji: '🍔', label: 'American'      },
+  { id: 'mexican',       emoji: '🌮', label: 'Mexican'        },
+  { id: 'pizza',         emoji: '🍕', label: 'Pizza'          },
+  { id: 'asian',         emoji: '🍜', label: 'Asian'          },
+  { id: 'healthy',       emoji: '🥗', label: 'Healthy'        },
+  { id: 'chicken',       emoji: '🍗', label: 'Chicken'        },
+  { id: 'subs',          emoji: '🌯', label: 'Subs & Wraps'   },
+  { id: 'bbq',           emoji: '🔥', label: 'BBQ'            },
+  { id: 'mediterranean', emoji: '🥙', label: 'Mediterranean'  },
+  { id: 'italian',       emoji: '🍝', label: 'Italian'        },
+  { id: 'seafood',       emoji: '🐟', label: 'Seafood'        },
+  { id: 'breakfast',     emoji: '🥞', label: 'Breakfast'      },
+];
+
+// Wheel
+let wheelSpinning = false;
+let luckyItems = [];
+let confettiAnimId = null;
+const WHEEL_COLORS = ['#0d9e7e','#1a6fb5','#f5a623','#e05555','#9b59b6','#27ae60','#e67e22','#2980b9','#c0392b','#8e44ad'];
+
+const STEPS_NEARBY = ['Detecting your location…','Finding restaurants nearby…','Pulling menu data…','Calculating protein per dollar…','Ranking results…'];
+const STEPS_HERE = ['Reading your GPS…','Identifying the restaurant…','Fetching menu data…','Estimating protein & prices…','Almost done…'];
+
+// ── Preferences ──────────────────────────────────────────────
+function openPrefs() {
+  renderPrefModal();
+  document.getElementById('pref-modal').classList.add('open');
+}
+function closePrefs() {
+  document.getElementById('pref-modal').classList.remove('open');
+}
+function prefOverlayClick(e) {
+  if (e.target === document.getElementById('pref-modal')) closePrefs();
+}
+function renderPrefModal() {
+  document.getElementById('food-grid').innerHTML = FOOD_CATS.map(cat => {
+    const sel = userPreferences.includes(cat.id);
+    const maxed = !sel && userPreferences.length >= 3;
+    return '<div class="food-cat' + (sel ? ' selected' : '') + (maxed ? ' maxed' : '') + '" onclick="toggleCat(\'' + cat.id + '\')" id="cat-' + cat.id + '">' +
+      '<span class="food-cat-emoji">' + cat.emoji + '</span>' +
+      '<span class="food-cat-label">' + cat.label + '</span>' +
+      '</div>';
+  }).join('');
+}
+function toggleCat(id) {
+  if (userPreferences.includes(id)) {
+    userPreferences = userPreferences.filter(p => p !== id);
+  } else {
+    if (userPreferences.length >= 3) return;
+    userPreferences.push(id);
+  }
+  renderPrefModal();
+  updatePrefBtn();
+}
+function clearPrefs() {
+  userPreferences = [];
+  renderPrefModal();
+  updatePrefBtn();
+}
+function applyPrefs() {
+  closePrefs();
+  updatePrefBtn();
+}
+function updatePrefBtn() {
+  const btn = document.getElementById('pref-btn');
+  if (!btn) return;
+  if (userPreferences.length > 0) {
+    btn.className = 'pref-btn has-prefs';
+    btn.innerHTML = '🎛️ Preferences <span class="pref-count">' + userPreferences.length + '</span>';
+  } else {
+    btn.className = 'pref-btn';
+    btn.innerHTML = '🎛️ Set Preferences';
+  }
+}
+function prefContext() {
+  if (!userPreferences.length) return '';
+  const labels = userPreferences.map(id => FOOD_CATS.find(c => c.id === id)?.label).filter(Boolean);
+  return '\nUser prefers these cuisine types: ' + labels.join(', ') + '. Prioritize and filter results to these food categories.';
+}
+
+// ── I'm Feeling Lucky ─────────────────────────────────────────
+async function feelingLucky() {
+  const btn = document.getElementById('lucky-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading…';
+  try {
+    if (!userLat) {
+      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout: 10000}));
+      userLat = pos.coords.latitude;
+      userLon = pos.coords.longitude;
+    }
+    document.getElementById('wheel-modal').classList.add('open');
+    document.getElementById('wheel-loading').style.display = 'block';
+    document.getElementById('wheel-content').style.display = 'none';
+    document.getElementById('wheel-winner-wrap').style.display = 'none';
+
+    const restaurants = await fetchNearbyRestaurants();
+    const restCtx = restaurants && restaurants.length
+      ? '\nReal restaurants nearby:\n' + restaurants.map(r => '- ' + r.name).join('\n')
+      : '\nUse knowledge of major chains near ' + userLat.toFixed(3) + ',' + userLon.toFixed(3) + '.';
+
+    luckyItems = await callClaude(
+      'You are a nutrition and fast food expert. User is near: ' + userLat.toFixed(4) + ', ' + userLon.toFixed(4) + '.' + restCtx + prefContext() +
+      '\n\nReturn exactly 10 fun, varied menu items that ALL have MORE THAN 5g of protein per dollar. Mix different restaurants and food types for variety.' +
+      '\nReturn ONLY a JSON array of exactly 10 objects, no markdown:\n' +
+      '[{"item":"name","restaurant":"name","protein_g":50,"price_usd":8.99,"protein_per_dollar":5.6,"calories":450,"note":"fun fact with emoji"}]' +
+      '\nOrder them randomly (NOT sorted by protein/$). Be playful and add a fun emoji to each note!'
+    );
+    luckyItems = luckyItems.slice(0, 10);
+    document.getElementById('wheel-loading').style.display = 'none';
+    document.getElementById('wheel-content').style.display = 'block';
+    initWheel(luckyItems);
+  } catch(e) {
+    document.getElementById('wheel-modal').classList.remove('open');
+    alert('⚠️ Could not load lucky picks. Try again!');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '🎰 I\'m Feeling Lucky';
+}
+
+function closeWheelModal() {
+  document.getElementById('wheel-modal').classList.remove('open');
+  wheelSpinning = false;
+}
+function wheelOverlayClick(e) {
+  if (e.target === document.getElementById('wheel-modal')) closeWheelModal();
+}
+
+function initWheel(items) {
+  const canvas = document.getElementById('wheel-canvas');
+  const size = Math.min(window.innerWidth - 100, 300);
+  canvas.width = size;
+  canvas.height = size;
+  drawWheel(items, 0);
+  document.getElementById('spin-btn').disabled = false;
+  document.getElementById('spin-btn').innerHTML = '🎰 Spin the Wheel!';
+  document.getElementById('wheel-winner-wrap').style.display = 'none';
+}
+
+function drawWheel(items, rotation) {
+  const canvas = document.getElementById('wheel-canvas');
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  const r = cx - 4;
+  const n = items.length;
+  const arc = (2 * Math.PI) / n;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  items.forEach((item, i) => {
+    const start = rotation + i * arc - Math.PI / 2;
+    const end = start + arc;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + arc / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#fff';
+    const fs = Math.max(9, Math.round(canvas.width / 34));
+    ctx.font = 'bold ' + fs + 'px DM Sans, sans-serif';
+    const rname = item.restaurant.length > 11 ? item.restaurant.slice(0, 9) + '…' : item.restaurant;
+    ctx.fillText(rname, r - 8, -2);
+    ctx.font = Math.max(8, fs - 2) + 'px DM Sans, sans-serif';
+    const iname = item.item.length > 13 ? item.item.slice(0, 11) + '…' : item.item;
+    ctx.fillText(iname, r - 8, 10);
+    ctx.restore();
+  });
+
+  // Hub
+  ctx.beginPath();
+  ctx.arc(cx, cy, 20, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#ddd';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.font = '16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🎲', cx, cy + 5);
+}
+
+function startSpin() {
+  if (wheelSpinning) return;
+  wheelSpinning = true;
+  document.getElementById('spin-btn').disabled = true;
+  document.getElementById('wheel-winner-wrap').style.display = 'none';
+
+  const n = luckyItems.length;
+  const arc = (2 * Math.PI) / n;
+  const winnerIdx = Math.floor(Math.random() * n);
+  // Spin so winnerIdx segment center lands at top (pointer at 12 o'clock)
+  const target = -(winnerIdx * arc + arc / 2);
+  const spins = (7 + Math.random() * 4) * 2 * Math.PI;
+  const totalAngle = target + spins;
+  const duration = 5500;
+  const startTime = performance.now();
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+  function frame(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    drawWheel(luckyItems, totalAngle * easeOut(t));
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      wheelSpinning = false;
+      showWheelWinner(luckyItems[winnerIdx]);
+      launchConfetti();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function showWheelWinner(item) {
+  document.getElementById('winner-item').textContent = item.item;
+  document.getElementById('winner-rest').textContent = item.restaurant;
+  document.getElementById('winner-ppd').textContent = item.protein_per_dollar.toFixed(1) + 'g/$';
+  document.getElementById('winner-protein').textContent = Math.round(item.protein_g) + 'g';
+  document.getElementById('winner-price').textContent = '$' + item.price_usd.toFixed(2);
+  document.getElementById('winner-note').textContent = item.note || '';
+  document.getElementById('wheel-winner-wrap').style.display = 'block';
+  document.getElementById('spin-btn').disabled = false;
+  document.getElementById('spin-btn').innerHTML = '🔄 Spin Again!';
+}
+
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+  const colors = ['#0d9e7e','#1a6fb5','#f5a623','#e05555','#9b59b6','#27ae60','#e67e22','#ff69b4','#00bcd4'];
+  const particles = Array.from({length: 180}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * 80,
+    w: 8 + Math.random() * 10,
+    h: 5 + Math.random() * 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    rot: Math.random() * Math.PI * 2,
+    vx: (Math.random() - 0.5) * 5,
+    vy: 2 + Math.random() * 5,
+    vrot: (Math.random() - 0.5) * 0.25,
+    opacity: 1
+  }));
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vrot; p.vy += 0.07;
+      if (frame > 90) p.opacity -= 0.013;
+      if (p.opacity > 0) alive = true;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.opacity);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (alive && frame < 260) {
+      confettiAnimId = requestAnimationFrame(animate);
+    } else {
+      canvas.style.display = 'none';
+    }
+  }
+  if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+  animate();
+}
+
+// ── Core app ──────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-mode-nearby').className = 'mode-btn' + (m==='nearby'?' active':'');
+  document.getElementById('btn-mode-here').className = 'mode-btn' + (m==='here'?' active':'');
+  document.getElementById('panel-nearby').style.display = m==='nearby'?'block':'none';
+  document.getElementById('panel-here').style.display = m==='here'?'block':'none';
+  document.getElementById('results').innerHTML = '<div class="empty"><div class="empty-icon">🥩</div><div>Your rankings will appear here</div></div>';
+  if (m==='here') initHereMode();
+}
+
+function initHereMode() {
+  if (userLat) { showHereLocation(); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude; userLon = pos.coords.longitude;
+    showHereLocation();
+    autoDetectRestaurant();
+  }, () => {
+    document.getElementById('here-loc-val').textContent = 'Location denied';
+    document.getElementById('here-loc-dot').className = 'loc-dot err';
+    document.getElementById('here-status').textContent = 'Location access required. Search manually below.';
+    document.getElementById('search-override').style.display = 'block';
+    document.getElementById('here-btn').disabled = false;
+  });
+}
+
+function showHereLocation() {
+  document.getElementById('here-loc-val').textContent = userLat.toFixed(4) + ', ' + userLon.toFixed(4);
+  document.getElementById('here-loc-dot').className = 'loc-dot on';
+}
+
+async function autoDetectRestaurant() {
+  document.getElementById('here-status').textContent = 'Looking for restaurants at your location…';
+  if (!googleApiKey) {
+    document.getElementById('here-status').textContent = 'Search below to find your restaurant.';
+    document.getElementById('search-override').style.display = 'block';
+    document.getElementById('here-btn').disabled = false;
+    return;
+  }
+  try {
+    const r = await fetch('/api/places/nearby?location=' + userLat + ',' + userLon + '&rankby=distance&type=restaurant&key=' + googleApiKey);
+    const d = await r.json();
+    if (d.results && d.results.length > 0) {
+      const top = d.results[0];
+      detectedRestaurant = { name: top.name, place_id: top.place_id, address: top.vicinity };
+      selectedRestaurant = detectedRestaurant;
+      document.getElementById('det-name').textContent = top.name;
+      document.getElementById('det-sub').textContent = top.vicinity || 'Detected from your GPS';
+      document.getElementById('detected-wrap').style.display = 'block';
+      document.getElementById('here-status').style.display = 'none';
+      document.getElementById('here-btn').disabled = false;
+    } else { throw new Error('none'); }
+  } catch(e) {
+    document.getElementById('here-status').textContent = 'Could not auto-detect. Search below.';
+    document.getElementById('search-override').style.display = 'block';
+    document.getElementById('here-btn').disabled = false;
+  }
+}
+
+function showSearchOverride() {
+  document.getElementById('detected-wrap').style.display = 'none';
+  document.getElementById('search-override').style.display = 'block';
+  document.getElementById('rest-search').focus();
+}
+
+let searchTimeout = null;
+async function handleSearch(val) {
+  clearTimeout(searchTimeout);
+  const sug = document.getElementById('suggestions');
+  if (val.length < 2) { sug.className = 'suggestions'; return; }
+  selectedRestaurant = { name: val, place_id: null, address: '' };
+  document.getElementById('here-btn').disabled = false;
+  if (!googleApiKey) { sug.className = 'suggestions'; return; }
+  searchTimeout = setTimeout(async () => {
+    try {
+      const loc = userLat ? '&location=' + userLat + ',' + userLon + '&radius=5000' : '';
+      const r = await fetch('https://maps.googleapis.com/maps/api/place/autocomplete/json?input=' + encodeURIComponent(val) + '&types=establishment' + loc + '&key=' + googleApiKey);
+      const d = await r.json();
+      if (!d.predictions || !d.predictions.length) { sug.className = 'suggestions'; return; }
+      sug.innerHTML = d.predictions.slice(0,5).map(p =>
+        '<div class="sug-item" onclick="selectSuggestion(\'' + p.place_id + '\',\'' + p.structured_formatting.main_text.replace(/'/g,"\\'") + '\',\'' + (p.structured_formatting.secondary_text||'').replace(/'/g,"\\'") + '\')">' +
+        '<div class="sug-name">' + p.structured_formatting.main_text + '</div>' +
+        '<div class="sug-addr">' + (p.structured_formatting.secondary_text||'') + '</div></div>'
+      ).join('');
+      sug.className = 'suggestions show';
+    } catch(e) {}
+  }, 300);
+}
+
+function selectSuggestion(placeId, name, addr) {
+  selectedRestaurant = { name, place_id: placeId, address: addr };
+  document.getElementById('rest-search').value = name;
+  document.getElementById('suggestions').className = 'suggestions';
+  document.getElementById('here-btn').disabled = false;
+}
+
+async function runNearby() {
+  const btn = document.getElementById('nearby-btn');
+  btn.disabled = true;
+  btn.innerHTML = spinHTML() + ' Detecting location…';
+  try {
+    if (!userLat) {
+      const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{timeout:10000}));
+      userLat = pos.coords.latitude; userLon = pos.coords.longitude;
+    }
+    document.getElementById('nearby-loc-val').textContent = userLat.toFixed(4) + ', ' + userLon.toFixed(4);
+    document.getElementById('nearby-loc-dot').className = 'loc-dot on';
+    showLoading('nearby');
+    const restaurants = await fetchNearbyRestaurants();
+    const results = await askClaudeNearby(restaurants);
+    lastResults = results; showFullList = false;
+    renderNearbyResults(results);
+  } catch(e) {
+    if (e.code === 1) {
+      document.getElementById('results').innerHTML = '<div class="err-box">📍 Location access was denied. Please allow location in your browser settings and try again.</div>';
+      document.getElementById('nearby-loc-dot').className = 'loc-dot err';
+    } else {
+      document.getElementById('results').innerHTML = '<div class="err-box">⚠️ ' + (e.message||'Something went wrong. Try again.') + '</div>';
+    }
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><path d="M13 5.5L8 2L3 5.5V11.5L8 14L13 11.5V5.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg> Search Again';
+}
+
+async function runHere() {
+  const rest = selectedRestaurant || (document.getElementById('rest-search').value ? {name:document.getElementById('rest-search').value,place_id:null,address:''} : null);
+  if (!rest) { alert('Please select or type a restaurant first.'); return; }
+  const btn = document.getElementById('here-btn');
+  btn.disabled = true;
+  lastRestName = rest.name;
+  showLoading('here');
+  try {
+    let menuContext = '';
+    if (googleApiKey && rest.place_id) menuContext = await fetchPlaceDetails(rest.place_id);
+    const results = await askClaudeHere(rest.name, menuContext);
+    lastResults = results; showFullList = false;
+    renderHereResults(rest.name, results);
+  } catch(e) {
+    document.getElementById('results').innerHTML = '<div class="err-box">⚠️ ' + (e.message||'Something went wrong. Try again.') + '</div>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> Search Again';
+}
+
+async function fetchNearbyRestaurants() {
+  if (!googleApiKey) return null;
+  const r = await fetch('/api/places/nearby?location=' + userLat + ',' + userLon + '&radius=800&type=restaurant&key=' + googleApiKey);
+  const d = await r.json();
+  if (!d.results) return null;
+  const top = d.results.slice(0,12);
+  const details = await Promise.all(top.map(p => fetchPlaceDetails(p.place_id).catch(()=>'')));
+  return top.map((p,i) => ({ name: p.name, cuisine: (p.types||[]).join(', '), rating: p.rating, price_level: p.price_level, details: details[i] }));
+}
+
+async function fetchPlaceDetails(placeId) {
+  if (!googleApiKey || !placeId) return '';
+  const r = await fetch('/api/places/details?place_id=' + placeId + '&fields=name,editorial_summary,reviews&key=' + googleApiKey);
+  const d = await r.json();
+  const result = d.result || {};
+  const summary = (result.editorial_summary && result.editorial_summary.overview) || '';
+  const reviews = (result.reviews||[]).slice(0,2).map(rv=>rv.text).join(' ');
+  return (summary + ' ' + reviews).trim().slice(0,600);
+}
+
+async function askClaudeNearby(restaurants) {
+  let restaurantContext = restaurants && restaurants.length
+    ? '\nReal restaurants within 0.5 miles:\n' + restaurants.map(r => '- ' + r.name + ' (cuisine: ' + r.cuisine + ', price: ' + (r.price_level||'?') + '/4)\n  Context: ' + (r.details||'none')).join('\n') + '\n\nInclude these alongside major chains.'
+    : '\nNo Google key — use knowledge of major US chains near ' + userLat.toFixed(3) + ',' + userLon.toFixed(3) + '.';
+  return callClaude('You are a nutrition and fast food expert. User is near: ' + userLat.toFixed(4) + ', ' + userLon.toFixed(4) + '.' + restaurantContext + prefContext() + '\n\nReturn top 15 highest protein-per-dollar menu items. Also identify the single healthiest overall option (best balance of high protein, reasonable calories, low saturated fat).\n\nReturn ONLY a JSON array of 15 objects, no markdown:\n[{"rank":1,"item":"name","restaurant":"name","protein_g":50,"price_usd":8.99,"protein_per_dollar":5.6,"calories":450,"carbs_g":30,"fat_g":12,"is_local":false,"is_healthiest":false,"note":"tip"}]\n\nMark exactly one item with "is_healthiest":true. Sort by protein_per_dollar descending.');
+}
+
+async function askClaudeHere(restaurantName, menuContext) {
+  return callClaude('You are a nutrition expert. User is at: "' + restaurantName + '".\n' + (menuContext ? 'Google context:\n' + menuContext + '\n' : '') + prefContext() + '\nReturn ALL menu items for "' + restaurantName + '" ranked by protein per dollar. Also mark the single healthiest option (best balance of protein, calories, fat).\n\nReturn ONLY a JSON array, no markdown:\n[{"rank":1,"item":"name","restaurant":"' + restaurantName + '","protein_g":40,"price_usd":9.99,"protein_per_dollar":4.0,"calories":400,"carbs_g":25,"fat_g":10,"is_healthiest":false,"note":"tip"}]\n\nInclude 8-15 items. Mark exactly one with "is_healthiest":true. Sort by protein_per_dollar descending.');
+}
+
+async function callClaude(prompt) {
+  const r = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4096, temperature: 0, messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!r.ok) throw new Error('Claude API error: ' + r.status);
+  const d = await r.json();
+  let raw = (d.content||[]).map(b => b.text||'').join('').trim();
+  if (raw.startsWith('```')) raw = raw.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'');
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (match) raw = match[0];
+  return JSON.parse(raw);
+}
+
+function showLoading(which) {
+  const steps = which === 'nearby' ? STEPS_NEARBY : STEPS_HERE;
+  let i = 0;
+  document.getElementById('results').innerHTML = '<div class="loading"><div class="spinner"></div><div class="load-lbl">Crunching the numbers…</div><div class="load-step" id="load-step">' + steps[0] + '</div></div>';
+  const iv = setInterval(() => {
+    const el = document.getElementById('load-step');
+    if (!el) { clearInterval(iv); return; }
+    if (++i < steps.length) el.textContent = steps[i];
+    else clearInterval(iv);
+  }, 1800);
+}
+
+function buildWinnerCards(results) {
+  const top = results[0];
+  const healthiest = results.find(r => r.is_healthiest) || results[1] || results[0];
+  const localBadge = r => r.is_local ? '<span class="local-tag">local</span>' : '';
+  return '<div class="winners-row">' +
+    '<div class="winner-card best-protein">' +
+      '<div class="wc-crown">Best protein/$</div>' +
+      '<div class="wc-emoji">💪</div>' +
+      '<div class="wc-name">' + top.item + localBadge(top) + '</div>' +
+      '<div class="wc-rest">' + top.restaurant + '</div>' +
+      '<div class="wc-stats">' +
+        '<div class="wc-stat"><span class="wc-stat-lbl">Protein/$</span><span class="wc-stat-val main">' + top.protein_per_dollar.toFixed(1) + 'g</span></div>' +
+        '<div class="wc-stat"><span class="wc-stat-lbl">Protein</span><span class="wc-stat-val">' + Math.round(top.protein_g) + 'g</span></div>' +
+        '<div class="wc-stat"><span class="wc-stat-lbl">Price</span><span class="wc-stat-val">$' + top.price_usd.toFixed(2) + '</span></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="winner-card best-health">' +
+      '<div class="wc-crown">Healthiest pick</div>' +
+      '<div class="wc-emoji">🥗</div>' +
+      '<div class="wc-name">' + healthiest.item + '<span class="health-tag">balanced</span>' + localBadge(healthiest) + '</div>' +
+      '<div class="wc-rest">' + healthiest.restaurant + '</div>' +
+      '<div class="wc-stats">' +
+        '<div class="wc-stat"><span class="wc-stat-lbl">Protein/$</span><span class="wc-stat-val main">' + healthiest.protein_per_dollar.toFixed(1) + 'g</span></div>' +
+        '<div class="wc-stat"><span class="wc-stat-lbl">Calories</span><span class="wc-stat-val">' + (healthiest.calories || '—') + '</span></div>' +
+        '<div class="wc-stat"><span class="wc-stat-lbl">Price</span><span class="wc-stat-val">$' + healthiest.price_usd.toFixed(2) + '</span></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function buildPodium(results) {
+  const podium = results.slice(0, 3);
+  const order = [1, 0, 2];
+  const classes = ['pod-2', 'pod-1', 'pod-3'];
+  const medals = ['🥈', '🥇', '🥉'];
+  const delays = [0, 600, 200];
+  let html = '<div class="sec-lbl" style="margin-top:4px">Top 3</div><div class="podium-wrap"><div class="podium">';
+  order.forEach((idx, pos) => {
+    const r = podium[idx];
+    if (!r) return;
+    html += '<div class="pod ' + classes[pos] + '" id="pod-' + pos + '" style="animation-delay:' + delays[pos] + 'ms">' +
+      '<div class="pod-info">' +
+        '<div class="pod-ratio">' + r.protein_per_dollar.toFixed(1) + '</div>' +
+        '<div class="pod-unit">g / $1</div>' +
+        '<div class="pod-item-name" style="margin-top:8px">' + r.item + '</div>' +
+        '<div class="pod-rest-name">' + r.restaurant + '</div>' +
+      '</div>' +
+      '<div class="pod-block">' +
+        '<div class="pod-medal">' + medals[pos] + '</div>' +
+        '<div class="pod-price">$' + r.price_usd.toFixed(2) + '</div>' +
+        '<div class="pod-protein">' + Math.round(r.protein_g) + 'g protein</div>' +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div></div>';
+  setTimeout(() => {
+    [0,1,2].forEach(i => { const el = document.getElementById('pod-' + i); if (el) el.classList.add('show'); });
+  }, 100);
+  return html;
+}
+
+function buildFullList(results) {
+  const max = results[0].protein_per_dollar;
+  let html = '<div class="sec-lbl" style="margin-top:20px">Full ranking</div>';
+  results.forEach((r, i) => {
+    const bar = Math.round((r.protein_per_dollar / max) * 100);
+    const localBadge = r.is_local ? '<span class="local-tag">local</span>' : '';
+    const healthBadge = r.is_healthiest ? '<span class="health-tag">healthiest</span>' : '';
+    html += '<div class="list-item">' +
+      '<div class="li-rank ' + (i<3?'top':'') + '">' + (i+1) + '</div>' +
+      '<div>' +
+        '<div class="li-name">' + r.item + localBadge + healthBadge + '</div>' +
+        '<div class="li-rest">' + r.restaurant + '</div>' +
+        (r.note ? '<div class="li-note">' + r.note + '</div>' : '') +
+        '<div class="li-macros">' +
+          '<span class="macro-pill macro-p">P: ' + Math.round(r.protein_g) + 'g</span>' +
+          (r.calories ? '<span class="macro-pill macro-c">' + r.calories + ' cal</span>' : '') +
+          (r.fat_g ? '<span class="macro-pill macro-f">F: ' + Math.round(r.fat_g) + 'g</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="li-stats">' +
+        '<div class="li-ratio">' + r.protein_per_dollar.toFixed(1) + '<span class="li-unit"> g/$</span></div>' +
+        '<div class="li-detail">$' + r.price_usd.toFixed(2) + '</div>' +
+      '</div>' +
+      '<div class="bar-row"><div class="bar-fill" style="width:' + bar + '%"></div></div>' +
+    '</div>';
+  });
+  return html;
+}
+
+function renderNearbyResults(results) {
+  if (!results || !results.length) { document.getElementById('results').innerHTML = '<div class="empty">No results found.</div>'; return; }
+  let html = buildWinnerCards(results) + buildPodium(results);
+  if (!showFullList) {
+    html += '<div class="toggle-link"><button onclick="toggleFull()">Show all ' + results.length + ' results ↓</button></div>';
+  } else {
+    html += buildFullList(results);
+    html += '<div class="toggle-link"><button onclick="toggleFull()">Show less ↑</button></div>';
+  }
+  document.getElementById('results').innerHTML = html;
+  setTimeout(() => { [0,1,2].forEach(i => { const el = document.getElementById('pod-' + i); if (el) el.classList.add('show'); }); }, 100);
+}
+
+function renderHereResults(restName, results) {
+  if (!results || !results.length) { document.getElementById('results').innerHTML = '<div class="empty">No menu data found.</div>'; return; }
+  let html = '<div class="sec-lbl">You\'re at: <span style="color:var(--teal);font-size:13px">' + restName + '</span></div>';
+  html += buildWinnerCards(results) + buildPodium(results);
+  if (!showFullList) {
+    html += '<div class="toggle-link"><button onclick="toggleFull()">Show full menu (' + results.length + ' items) ↓</button></div>';
+  } else {
+    html += buildFullList(results);
+    html += '<div class="toggle-link"><button onclick="toggleFull()">Show less ↑</button></div>';
+  }
+  document.getElementById('results').innerHTML = html;
+  setTimeout(() => { [0,1,2].forEach(i => { const el = document.getElementById('pod-' + i); if (el) el.classList.add('show'); }); }, 100);
+}
+
+function toggleFull() {
+  showFullList = !showFullList;
+  if (mode === 'nearby') renderNearbyResults(lastResults);
+  else renderHereResults(lastRestName || 'Restaurant', lastResults);
+}
+
+function spinHTML() {
+  return '<div style="width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>';
+}
+</script>
+</body>
+</html>
