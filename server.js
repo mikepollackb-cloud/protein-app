@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(__dirname));
 
 app.post('/api/claude', async (req, res) => {
   const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -40,4 +40,8 @@ app.get('/api/places/details', async (req, res) => {
   res.json(data);
 });
 
-app.listen(3000, () => console.log('Open http://localhost:3000'));
+if (require.main === module) {
+  app.listen(3000, () => console.log('Open http://localhost:3000'));
+}
+
+module.exports = app;
